@@ -1,0 +1,10 @@
+G:\CSharp\SEConnectorAlignApp\bin\x64\Debug\netframework48\thumb.png
+G:\CSharp\SEConnectorAlignApp\bin\x64\Debug\netframework48\SEConnectorAlignApp.dll
+G:\CSharp\SEConnectorAlignApp\bin\x64\Debug\netframework48\SEConnectorAlignApp.pdb
+G:\CSharp\SEConnectorAlignApp\obj\x64\Debug\netframework48\SEConnectorAlignApp.csproj.AssemblyReference.cache
+G:\CSharp\SEConnectorAlignApp\obj\x64\Debug\netframework48\SEConnectorAlignApp.GeneratedMSBuildEditorConfig.editorconfig
+G:\CSharp\SEConnectorAlignApp\obj\x64\Debug\netframework48\SEConnectorAlignApp.csproj.CoreCompileInputs.cache
+G:\CSharp\SEConnectorAlignApp\obj\x64\Debug\netframework48\SEConnectorAlignApp.dll
+G:\CSharp\SEConnectorAlignApp\obj\x64\Debug\netframework48\SEConnectorAlignApp.pdb
+G:\CSharp\SEConnectorAlignApp\bin\x64\Debug\netframework48\Content\Data\LCDTextures_ConnectorAlignApp.sbc
+G:\CSharp\SEConnectorAlignApp\bin\x64\Debug\netframework48\Content\Textures\Sprites\Docking_Bracket.dds
