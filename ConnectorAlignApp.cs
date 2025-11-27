@@ -53,6 +53,10 @@ namespace SEConnectorAlignApp
         const int COLOR_UPDATE_RATE = 12;
         int colorTick = 6; // offset from custom data
 
+        bool relativeToLCD = true;
+        bool useLargeFont = true;
+        string customConnectorName = "";
+
         // visual stuff
         RectangleF screen;
         readonly float aspectRatio;
@@ -247,6 +251,16 @@ namespace SEConnectorAlignApp
             else
             {
                 useLargeFont = customDataIni.Get("ConnAlign", "useLargeFont").ToBoolean(true);
+            }
+
+            if (!customDataIni.ContainsKey("ConnAlign", "connectorName"))
+            {
+                customDataIni.Set("ConnAlign", "connectorName", "");
+                updateCustomData = true;
+            }
+            else
+            {
+                customConnectorName = customDataIni.Get("ConnAlign", "connectorName").ToString("");
             }
 
             if (updateCustomData)
@@ -487,6 +501,8 @@ namespace SEConnectorAlignApp
                 velocityDiffIndicator.RotationOrScale = valuesFontSize;
                 velocityDiffIndicator.Position = NormalizedToScreenPosition(0.25f, 0.25f, 0.5f, 0.5f, true) - new Vector2(0.0f, valuesFontSize * 28.8f * 0.5f);
             }
+
+            customConnectorName = customDataIni.Get("ConnAlign", "connectorName").ToString("");
         }
 
         /// <summary>
