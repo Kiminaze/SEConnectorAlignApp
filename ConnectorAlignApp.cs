@@ -529,6 +529,24 @@ namespace SEConnectorAlignApp
             velocityDiffIndicator.Color = foregroundColor;
         }
 
+        private List<IMyShipConnector> GetConnectorsOnGrid(IMyCubeGrid cubeGrid)
+        {
+            List<IMySlimBlock> blocks = new List<IMySlimBlock>();
+            cubeGrid.GetBlocks(blocks, b => {
+                if (customConnectorName == "")
+                    return b?.FatBlock is IMyShipConnector;
+                else
+                    return b?.FatBlock is IMyShipConnector && (b?.FatBlock as IMyShipConnector).CustomName == customConnectorName;
+            });
+
+            List<IMyShipConnector> connectors = new List<IMyShipConnector>();
+            foreach (IMySlimBlock slimBlock in blocks)
+            {
+                connectors.Add(slimBlock.FatBlock as IMyShipConnector);
+            }
+            return connectors;
+        }
+
         /// <summary>
         /// Returns a list of all connectors on the grid and (mechanically connected) subgrids.
         /// </summary>
@@ -537,7 +555,7 @@ namespace SEConnectorAlignApp
             List<IMyShipConnector> connectors = new List<IMyShipConnector>();
 
             foreach (IMyCubeGrid subGrid in mainGrids)
-                connectors.AddRange(subGrid.GetFatBlocks<IMyShipConnector>());
+                connectors.AddRange(GetConnectorsOnGrid(subGrid));
 
             return connectors;
         }
