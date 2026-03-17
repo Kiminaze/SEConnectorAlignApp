@@ -137,8 +137,8 @@ namespace SEConnectorAlignApp
 
             if (gridConnector != null)
             {
-                gridConnectorLabel.Data = gridConnector.CustomName.Length <= 12 ? gridConnector.CustomName : gridConnector.CustomName.Replace(' ', '\n');
-                targetConnectorLabel.Data = targetConnector.CustomName.Length <= 12 ? targetConnector.CustomName : targetConnector.CustomName.Replace(' ', '\n');
+                gridConnectorLabel.Data = WrapText(gridConnector.CustomName, 12);
+                targetConnectorLabel.Data = WrapText(targetConnector.CustomName, 12);
 
                 Vector3D connOffset, connRotationOffset, lcdOffset, lcdRotationOffset;
                 GetConnectorOffset(out connOffset, out connRotationOffset, out lcdOffset, out lcdRotationOffset);
@@ -777,6 +777,43 @@ namespace SEConnectorAlignApp
         private float GetFontSize(float height)
         {
             return (height * minScreenExtend) / 28.8f;
+        }
+
+        /// <summary>
+        /// Wrap text to a maximum width.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="maxWidth"></param>
+        /// <returns></returns>
+        private string WrapText(string text, int maxWidth)
+        {
+            string wrappedText = text.Trim();
+            if (text.Length <= maxWidth)
+                return wrappedText;
+
+            StringBuilder sb = new StringBuilder();
+            int currLineWidth = 0;
+
+            string[] splitWords = wrappedText.Split(' ');
+            sb.Append(splitWords[0]);
+            currLineWidth += splitWords[0].Length;
+            for (int i = 1; i < splitWords.Length; i++)
+            {
+                if (currLineWidth + splitWords[i].Length + 1 <= maxWidth)
+                {
+                    sb.Append(' ');
+                    currLineWidth += splitWords[i].Length + 1;
+                }
+                else
+                {
+                    sb.Append('\n');
+                    currLineWidth = splitWords[i].Length;
+                }
+
+                sb.Append(splitWords[i]);
+            }
+
+            return sb.ToString();
         }
 
         /// <summary>
