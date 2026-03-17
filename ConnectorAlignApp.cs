@@ -1,30 +1,16 @@
 ﻿
-using BulletXNA;
-using Sandbox.Game;
-using Sandbox.Game.Entities;
-using Sandbox.Game.Entities.Blocks;
-using Sandbox.Game.Entities.Cube;
-using Sandbox.Game.GameSystems.TextSurfaceScripts;
-using Sandbox.Game.Screens.Helpers;
-using Sandbox.ModAPI;
-using Sandbox.ModAPI.Interfaces.Terminal;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
+using Sandbox.Game.GameSystems.TextSurfaceScripts;
+using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.GUI.TextPanel;
 using VRage.Game.ModAPI;
 using VRage.Game.ModAPI.Ingame.Utilities;
-using VRage.Game.ObjectBuilders.AI;
-using VRage.Groups;
-using VRage.Library.Utils;
 using VRage.ModAPI;
-using VRage.Utils;
 using VRageMath;
-using VRageRender.Messages;
 
 namespace SEConnectorAlignApp
 {
@@ -42,9 +28,6 @@ namespace SEConnectorAlignApp
         // logic stuff
         IMyShipConnector gridConnector;
         IMyShipConnector targetConnector;
-
-        bool relativeToLCD = true;
-        bool useLargeFont = true;
 
         // user changeable stuff
         readonly MyIni customDataIni = new MyIni();
@@ -93,17 +76,7 @@ namespace SEConnectorAlignApp
 
             grid = block.CubeGrid;
 
-            // set up grid groups
-            SetupGridGroups();
-
-            //MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Mechanical, mainGrids);
-            //IMyGridGroupData gridGroup = MyAPIGateway.GridGroups.GetGridGroup(GridLinkTypeEnum.Mechanical, grid);
-            //if (gridGroup != null)
-            //{
-            //    gridGroup.OnGridAdded += GridGroup_OnGridAdded;
-            //    gridGroup.OnGridRemoved += GridGroup_OnGridRemoved;
-            //    gridGroup.OnReleased += GridGroup_OnReleased;
-            //}
+            MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Mechanical, mainGrids);
 
             // handle config
             GetOrCreateConfig();
@@ -124,24 +97,24 @@ namespace SEConnectorAlignApp
         {
             base.Run();
 
-            //Stopwatch sw = new Stopwatch();
-            //sw.Start();
-
             // check for custom data changes
             CheckCustomData();
 
             // check for changes in foreground color
             CheckAndFixColors();
 
+            // check for valid connector pair and populate grid- and targetConnector
             FindCloseConnectors();
 
             if (gridConnector != null)
             {
-                gridConnectorLabel.Data = WrapText(gridConnector.CustomName, 12);
-                targetConnectorLabel.Data = WrapText(targetConnector.CustomName, 12);
-
+                // get connector offsets
                 Vector3D connOffset, connRotationOffset, lcdOffset, lcdRotationOffset;
                 GetConnectorOffset(out connOffset, out connRotationOffset, out lcdOffset, out lcdRotationOffset);
+
+                // set UI values
+                gridConnectorLabel.Data = WrapText(gridConnector.CustomName, 12);
+                targetConnectorLabel.Data = WrapText(targetConnector.CustomName, 12);
 
                 targetConnectorSprite.Position = NormalizedToScreenPosition((float)lcdOffset.X * 0.025f, -(float)lcdOffset.Y * 0.025f, 0.5f, 0.5f, true);
                 targetConnectorSprite.Size = TextureSizeToScreenSize(0.1f, 51f / 51f) * (1f + (float)lcdOffset.Z * 0.0125f);
@@ -187,9 +160,7 @@ namespace SEConnectorAlignApp
                 velocityDiffIndicator.Data = "0 m/s";
             }
 
-            //sw.Stop();
-            //Log("sw " + sw.ElapsedTicks);
-
+            // draw to screen
             using (var frame = Surface.DrawFrame())
             {
                 // sprites
@@ -220,61 +191,12 @@ namespace SEConnectorAlignApp
             }
         }
 
-        private void GetOrCreateConfig()
-        {
-            MyIniParseResult result;
-            customDataIni.TryParse(block.CustomData, out result);
-
-            bool updateCustomData = false;
-
-            if (!customDataIni.ContainsSection("ConnAlign"))
-            {
-                customDataIni.AddSection("ConnAlign");
-                updateCustomData = true;
-            }
-
-            if (!customDataIni.ContainsKey("ConnAlign", "relativeToLcd"))
-            {
-                customDataIni.Set("ConnAlign", "relativeToLcd", true);
-                updateCustomData = true;
-            }
-            else
-            {
-                relativeToLCD = customDataIni.Get("ConnAlign", "relativeToLcd").ToBoolean(true);
-            }
-
-            if (!customDataIni.ContainsKey("ConnAlign", "useLargeFont"))
-            {
-                customDataIni.Set("ConnAlign", "useLargeFont", true);
-                updateCustomData = true;
-            }
-            else
-            {
-                useLargeFont = customDataIni.Get("ConnAlign", "useLargeFont").ToBoolean(true);
-            }
-
-            if (!customDataIni.ContainsKey("ConnAlign", "connectorName"))
-            {
-                customDataIni.Set("ConnAlign", "connectorName", "");
-                updateCustomData = true;
-            }
-            else
-            {
-                customConnectorName = customDataIni.Get("ConnAlign", "connectorName").ToString("");
-            }
-
-            if (updateCustomData)
-                block.CustomData = customDataIni.ToString();
-        }
-
         /// <summary>
         /// Creates all sprites
         /// </summary>
         private void CreateSprites()
         {
-            float valuesFontSize = GetFontSize(0.033f);
-            if (useLargeFont)
-                valuesFontSize = GetFontSize(0.075f);
+            float valuesFontSize = GetFontSize(useLargeFont ? 0.075f : 0.033f);
 
             midPoint = new MySprite()
             {
@@ -455,6 +377,56 @@ namespace SEConnectorAlignApp
         }
 
         /// <summary>
+        /// Gets config from block custom data (or creates it instead).
+        /// </summary>
+        private void GetOrCreateConfig()
+        {
+            MyIniParseResult result;
+            customDataIni.TryParse(block.CustomData, out result);
+
+            bool updateCustomData = false;
+
+            if (!customDataIni.ContainsSection("ConnAlign"))
+            {
+                customDataIni.AddSection("ConnAlign");
+                updateCustomData = true;
+            }
+
+            if (!customDataIni.ContainsKey("ConnAlign", "relativeToLcd"))
+            {
+                customDataIni.Set("ConnAlign", "relativeToLcd", true);
+                updateCustomData = true;
+            }
+            else
+            {
+                relativeToLCD = customDataIni.Get("ConnAlign", "relativeToLcd").ToBoolean(true);
+            }
+
+            if (!customDataIni.ContainsKey("ConnAlign", "useLargeFont"))
+            {
+                customDataIni.Set("ConnAlign", "useLargeFont", true);
+                updateCustomData = true;
+            }
+            else
+            {
+                useLargeFont = customDataIni.Get("ConnAlign", "useLargeFont").ToBoolean(true);
+            }
+
+            if (!customDataIni.ContainsKey("ConnAlign", "connectorName"))
+            {
+                customDataIni.Set("ConnAlign", "connectorName", "");
+                updateCustomData = true;
+            }
+            else
+            {
+                customConnectorName = customDataIni.Get("ConnAlign", "connectorName").ToString("");
+            }
+
+            if (updateCustomData)
+                block.CustomData = customDataIni.ToString();
+        }
+
+        /// <summary>
         /// Check custom data and set values accordingly. (happens every ~2 seconds)
         /// </summary>
         private void CheckCustomData()
@@ -545,6 +517,11 @@ namespace SEConnectorAlignApp
             velocityDiffIndicator.Color = foregroundColor;
         }
 
+        /// <summary>
+        /// Gets all connectors on the specified grid. Takes customConnectorName into account.
+        /// </summary>
+        /// <param name="cubeGrid"></param>
+        /// <returns></returns>
         private List<IMyShipConnector> GetConnectorsOnGrid(IMyCubeGrid cubeGrid)
         {
             List<IMySlimBlock> blocks = new List<IMySlimBlock>();
@@ -594,11 +571,6 @@ namespace SEConnectorAlignApp
                 if (!isGridConn)
                     continue;
 
-                // todo: switch to frustum instead of box?
-                //MatrixD viewMatrix = tmpGridConnector.GetViewMatrix();
-                //MatrixD projectionMatrix = MatrixD.CreatePerspectiveFieldOfView(Math.PI / 2.0, 1.0, 0.1, 50);
-                //BoundingFrustumD test = new BoundingFrustumD(viewMatrix * projectionMatrix);
-
                 Vector3D forwardPosition = tmpGridConnector.GetPosition() + tmpGridConnector.WorldMatrix.Forward * 20f;
                 MyOrientedBoundingBoxD box = new MyOrientedBoundingBoxD(forwardPosition, new Vector3D(20f), Quaternion.CreateFromRotationMatrix(tmpGridConnector.WorldMatrix));
                 BoundingSphereD sphere = new BoundingSphereD(forwardPosition, 100.0);
@@ -638,6 +610,11 @@ namespace SEConnectorAlignApp
             }
         }
 
+        /// <summary>
+        /// Get the connectors dummy matrix for correct offsets.
+        /// </summary>
+        /// <param name="connector"></param>
+        /// <returns></returns>
         private MatrixD GetConnectorDummyMatrix(IMyShipConnector connector)
         {
             Dictionary<string, IMyModelDummy> modelDummies = new Dictionary<string, IMyModelDummy>();
@@ -656,9 +633,10 @@ namespace SEConnectorAlignApp
         /// <summary>
         /// Get the positional and rotational offset including roll in relation to 90° increments.
         /// </summary>
-        /// <param name="positionOffset">Positional offset</param>
-        /// <param name="rotationOffset">Rotational offset</param>
-        /// <param name="fixedRoll">Roll in relation to 90° increments.</param>
+        /// <param name="positionOffset">Positional offset related to world space.</param>
+        /// <param name="rotationOffset">Rotational offset related to world space.</param>
+        /// <param name="lcdPositionOffset">Positional offset related to the LCD.</param>
+        /// <param name="lcdRotationOffset">Rotational offset related to the LCD.</param>
         private void GetConnectorOffset(out Vector3D positionOffset, out Vector3D rotationOffset, out Vector3D lcdPositionOffset, out Vector3D lcdRotationOffset)
         {
             MatrixD gridConnDummyM = GetConnectorDummyMatrix(gridConnector);
@@ -716,7 +694,7 @@ namespace SEConnectorAlignApp
         }
 
         /// <summary>
-        /// Checks if a connector actually has connector/small_connector dummies.
+        /// Checks if a connector actually has (small_)connector dummies.
         /// </summary>
         /// <param name="connector">The connector to check.</param>
         /// <param name="isSmall">If the connector is a small connector.</param>
@@ -814,131 +792,6 @@ namespace SEConnectorAlignApp
             }
 
             return sb.ToString();
-        }
-
-        /// <summary>
-        /// Draws a grid for easier positioning of stuff.
-        /// </summary>
-        /// <param name="frame"></param>
-        private void DrawDebugGrid(MySpriteDrawFrame frame)
-        {
-            for (int i = 1; i < 10; i++)
-            {
-                frame.Add(new MySprite()
-                {
-                    Type = SpriteType.TEXTURE,
-                    Data = "SquareTapered",
-                    Position = NormalizedToScreenPosition(i * 0.1f, 0.5f),
-                    RotationOrScale = 0.0f,
-                    Color = Surface.ScriptForegroundColor.Alpha(0.03f),
-                    Alignment = TextAlignment.CENTER,
-                    Size = new Vector2(2, screen.Height)
-                });
-                frame.Add(new MySprite()
-                {
-                    Type = SpriteType.TEXTURE,
-                    Data = "SquareTapered",
-                    Position = NormalizedToScreenPosition(0.5f, i * 0.1f),
-                    RotationOrScale = 0.0f,
-                    Color = Surface.ScriptForegroundColor.Alpha(0.03f),
-                    Alignment = TextAlignment.CENTER,
-                    Size = new Vector2(screen.Width, 2)
-                });
-            }
-        }
-
-        private void SetupGridGroups()
-        {
-            MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Mechanical, mainGrids);
-
-            foreach (IMyCubeGrid g in mainGrids)
-            {
-
-            }
-
-            IMyGridGroupData gridGroup = MyAPIGateway.GridGroups.GetGridGroup(GridLinkTypeEnum.Mechanical, grid);
-            if (gridGroup != null)
-            {
-                gridGroup.OnGridAdded += GridGroup_OnGridAdded;
-                gridGroup.OnGridRemoved += GridGroup_OnGridRemoved;
-                gridGroup.OnReleased += GridGroup_OnReleased;
-            }
-        }
-
-        /// <summary>
-        /// First MyGridGroupData(this) - where grid would be added
-        /// Second MyGridGroupData(Nullable) - previous grid group of grid
-        /// </summary>
-        /// <param name="newGroup"></param>
-        /// <param name="newGrid"></param>
-        /// <param name="prevGroup"></param>
-        private void GridGroup_OnGridAdded(IMyGridGroupData newGroup, IMyCubeGrid newGrid, IMyGridGroupData prevGroup)
-        {
-            Log("mechanical grid added");
-
-            // remove old subscriptions
-            //prevGroup.OnGridAdded -= GridGroup_OnGridAdded;
-            //prevGroup.OnGridRemoved -= GridGroup_OnGridRemoved;
-            //prevGroup.OnReleased -= GridGroup_OnReleased;
-            //
-            //// add new subscriptions
-            //newGroup.OnGridAdded += GridGroup_OnGridAdded;
-            //newGroup.OnGridRemoved += GridGroup_OnGridRemoved;
-            //newGroup.OnReleased += GridGroup_OnReleased;
-
-            // add grid to list
-            mainGrids.Add(newGrid);
-        }
-
-        /// <summary>
-        /// First MyGridGroupData(this) - from where grid was removed
-        /// Second MyGridGroupData(Nullable) - where grid group would be added
-        /// Called after Keen OnAdded logic, like MyGridLogicalGroupData.OnNodeAdded
-        /// </summary>
-        /// <param name="firstGroup"></param>
-        /// <param name="removedGrid"></param>
-        /// <param name="secondGroup"></param>
-        private void GridGroup_OnGridRemoved(IMyGridGroupData firstGroup, IMyCubeGrid removedGrid, IMyGridGroupData secondGroup)
-        {
-            //firstGroup.OnGridAdded -= GridGroup_OnGridAdded;
-            //firstGroup.OnGridRemoved -= GridGroup_OnGridRemoved;
-            //firstGroup.OnReleased -= GridGroup_OnReleased;
-
-            if (removedGrid == grid)
-            {
-                Log("mechanical MAIN grid removed");
-
-                MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Mechanical, mainGrids);
-
-                secondGroup.OnGridAdded += GridGroup_OnGridAdded;
-                secondGroup.OnGridRemoved += GridGroup_OnGridRemoved;
-                secondGroup.OnReleased += GridGroup_OnReleased;
-            }
-            else
-            {
-                Log("mechanical grid removed");
-
-                mainGrids.Remove(removedGrid);
-            }
-        }
-
-        /// <summary>
-        /// You must clean your subscriptions here. Instances of IMyGridGroupData are re-used
-        /// in ObjectPool. At the time event is called it has no grids attached to it.
-        /// </summary>
-        /// <param name="obj"></param>
-        private void GridGroup_OnReleased(IMyGridGroupData obj)
-        {
-            Log("mechanical grid released");
-
-            obj.OnGridAdded -= GridGroup_OnGridAdded;
-            obj.OnGridRemoved -= GridGroup_OnGridRemoved;
-            obj.OnReleased -= GridGroup_OnReleased;
-        }
-
-        private void Log(string msg)
-        {
-            MyLog.Default.WriteLine("[ConnectorAlignApp] " + msg);
         }
 
         public override void Dispose()
