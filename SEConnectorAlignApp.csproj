@@ -26,7 +26,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AdditionalFiles>
     <AdditionalFiles Remove="Content\*\**\*.cs" />
-    <AdditionalFiles Remove="Content\Other content folders" />
     <None Remove="thumb.png" />
   </ItemGroup>
 </Project>
