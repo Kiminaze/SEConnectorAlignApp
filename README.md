@@ -16,6 +16,11 @@ https://github.com/Kiminaze/SELCDScreenAppSelector
 ![image](thumb.png)
 
 
+### Video Showcase
+
+https://www.youtube.com/watch?v=5Y65UWF-Vok
+
+
 ## 📋 Features
 
 - Visual representation of positional and rotational offset.
@@ -41,7 +46,7 @@ updates per second).
 
 ## 💾 Download
 
-TODO: ADD STEAM WORKSHOP LINK
+https://steamcommunity.com/sharedfiles/filedetails/?id=3687605561
 
 
 ## Copyright
