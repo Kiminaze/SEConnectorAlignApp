@@ -36,6 +36,21 @@ https://www.youtube.com/watch?v=5Y65UWF-Vok
   (rotor, piston, hinge).
 
 
+### 🛠 Config
+
+Default:
+```
+[ConnAlign]
+relativeToLcd=true
+useLargeFont=true
+connectorName=
+```
+
+<b>relativeToLcd:</b> Values in reference to the lcd (`true`) or connector (`false`).<br>
+<b>useLargeFont:</b> Large font (`true`) or smaller font (`false`).<br>
+<b>connectorName:</b> Name of a specific connector for this app. Leave empty for auto detection.
+
+
 ## Known issues
 
 - Adding/removing grids through mechanical connections (rotor, piston, hinge) requires a manual 
