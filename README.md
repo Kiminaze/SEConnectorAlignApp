@@ -11,7 +11,9 @@ connectors on subgrids.
 
 There is also a "companion script" for the programmable block that allows switching through 
 different apps for the LCD in an easy manner. You can find it here:
-TODO: ADD GITHUB LINK FOR PB SCRIPT
+https://github.com/Kiminaze/SELCDScreenAppSelector
+
+![image](thumb.png)
 
 
 ## 📋 Features
@@ -28,7 +30,6 @@ TODO: ADD GITHUB LINK FOR PB SCRIPT
 - Works with any connector on the grid of the LCD and all subgrids through mechanical connections 
   (rotor, piston, hinge).
 
-![image](thumb.png)
 
 ## Known issues
 
