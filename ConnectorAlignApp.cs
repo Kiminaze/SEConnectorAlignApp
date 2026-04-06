@@ -402,7 +402,7 @@ namespace SEConnectorAlignApp
         private void GetOrCreateConfig()
         {
             MyIniParseResult result;
-            customDataIni.TryParse(block.CustomData, out result);
+            bool validIni = customDataIni.TryParse(block.CustomData, out result);
 
             bool updateCustomData = false;
 
@@ -443,7 +443,16 @@ namespace SEConnectorAlignApp
             }
 
             if (updateCustomData)
-                block.CustomData = customDataIni.ToString();
+            {
+                if (validIni)
+                {
+                    block.CustomData = customDataIni.ToString();
+                }
+                else
+                {
+                    block.CustomData = customDataIni.ToString() + "\n\n---\n" + block.CustomData;
+                }
+            }
         }
 
         /// <summary>
