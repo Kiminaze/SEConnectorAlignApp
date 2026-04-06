@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Sandbox.Game.Entities;
 using Sandbox.Game.GameSystems.TextSurfaceScripts;
 using Sandbox.ModAPI;
 using VRage.Game;
@@ -545,6 +546,12 @@ namespace SEConnectorAlignApp
         {
             List<IMySlimBlock> blocks = new List<IMySlimBlock>();
             cubeGrid.GetBlocks(blocks, b => {
+                if ((b.CubeGrid as MyCubeGrid)?.Projector != null)
+                    return false;
+
+                if (b.FatBlock == null || b.BuildLevelRatio < 0.1f)
+                    return false;
+
                 if (customConnectorName == "")
                     return b?.FatBlock is IMyShipConnector;
                 else
@@ -607,6 +614,9 @@ namespace SEConnectorAlignApp
                 foreach (IMyEntity entity in entities)
                 {
                     IMyShipConnector tmpTargetConnector = entity as IMyShipConnector;
+
+                    if ((tmpTargetConnector.CubeGrid as MyCubeGrid).Projector != null)
+                        continue;
 
                     if (gridConnectors.Contains(tmpTargetConnector))
                         continue;
